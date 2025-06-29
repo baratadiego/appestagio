@@ -17,7 +17,18 @@ RUN apt-get update \
         libpq-dev \
         gettext \
         curl \
-        && rm -rf /var/lib/apt/lists/*
+        libpango-1.0-0 \
+        libpangocairo-1.0-0 \
+        libcairo2 \
+        libgdk-pixbuf2.0-0 \
+        libffi-dev \
+        libglib2.0-0 \
+        libxml2 \
+        libxslt1.1 \
+        fonts-liberation \
+        fonts-dejavu \
+        shared-mime-info \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copiar e instalar dependências Python
 COPY requirements.txt /app/

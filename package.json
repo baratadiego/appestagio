@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "chart.js": "^4.5.0",
+    "jspdf": "^3.0.1",
+    "react-calendar-heatmap": "^1.10.0",
+    "react-csv": "^2.2.2",
+    "react-datepicker": "^8.4.0",
+    "react-tooltip": "^5.29.1"
+  }
+}

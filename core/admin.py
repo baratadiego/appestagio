@@ -2,13 +2,21 @@
 Configuração do painel administrativo para o Sistema de Estágios
 """
 from django.contrib import admin
-from django.utils.html import format_html
+from django.contrib.auth.admin import UserAdmin
 from django.urls import reverse
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from .models import (
-    Estagiario, Convenio, Estagio, Documento, 
-    Notificacao, EstatisticasSistema
-)
+
+from .models import (Convenio, Documento, Estagiario, Estagio,
+                     EstatisticasSistema, Notificacao, User)
+
+
+@admin.register(User)
+class CustomUserAdmin(UserAdmin):
+    fieldsets = UserAdmin.fieldsets + (
+        ('Role', {'fields': ('role',)}),
+    )
+    list_display = UserAdmin.list_display + ('role',)
 
 
 @admin.register(Estagiario)
@@ -264,51 +272,12 @@ class NotificacaoAdmin(admin.ModelAdmin):
         return super().get_queryset(request).select_related('estagiario')
 
 
-@admin.register(EstatisticasSistema)
-class EstatisticasSistemaAdmin(admin.ModelAdmin):
-    """Configuração do admin para Estatísticas do Sistema"""
-    
-    list_display = [
-        'data_calculo', 'total_estagiarios', 'estagios_em_andamento',
-        'convenios_ativos', 'total_documentos'
-    ]
-    readonly_fields = [
-        'data_calculo', 'total_estagiarios', 'estagiarios_ativos',
-        'total_estagios', 'estagios_em_andamento', 'total_convenios',
-        'convenios_ativos', 'total_documentos', 'notificacoes_nao_lidas'
-    ]
-    
-    fieldsets = (
-        ('Estagiários', {
-            'fields': ('total_estagiarios', 'estagiarios_ativos')
-        }),
-        ('Estágios', {
-            'fields': ('total_estagios', 'estagios_em_andamento')
-        }),
-        ('Convênios', {
-            'fields': ('total_convenios', 'convenios_ativos')
-        }),
-        ('Documentos e Notificações', {
-            'fields': ('total_documentos', 'notificacoes_nao_lidas')
-        }),
-        ('Controle', {
-            'fields': ('data_calculo',)
-        }),
-    )
-    
-    actions = ['atualizar_estatisticas']
-    
-    def atualizar_estatisticas(self, request, queryset):
-        """Ação para atualizar as estatísticas"""
-        EstatisticasSistema.calcular_estatisticas()
-        self.message_user(request, 'Estatísticas atualizadas com sucesso!')
-    atualizar_estatisticas.short_description = "Atualizar estatísticas"
-    
-    def has_add_permission(self, request):
-        """Impede a criação manual de estatísticas"""
-        return False
-    
-    def has_delete_permission(self, request, obj=None):
-        """Impede a exclusão de estatísticas"""
-        return False
+class EstatisticasAdmin(admin.ModelAdmin):
+    change_list_template = "admin/statistics_chart.html"
+
+    def changelist_view(self, request, extra_context=None):
+        # Você pode buscar dados dos endpoints ou do banco aqui
+        return super().changelist_view(request, extra_context=extra_context)
+
+admin.site.register(EstatisticasSistema, EstatisticasAdmin)
 

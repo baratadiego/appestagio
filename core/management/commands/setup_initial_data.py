@@ -1,14 +1,14 @@
 """
 Comando para configurar dados iniciais do sistema
 """
-from django.core.management.base import BaseCommand
-from django.contrib.auth.models import User
-from django.utils import timezone
 from datetime import date, timedelta
-from core.models import (
-    Estagiario, Convenio, Estagio, Documento, 
-    Notificacao, EstatisticasSistema
-)
+
+from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
+from django.utils import timezone
+
+from core.models import (Convenio, Documento, Estagiario, Estagio,
+                         EstatisticasSistema, Notificacao)
 
 
 class Command(BaseCommand):

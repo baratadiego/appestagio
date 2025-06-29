@@ -1,33 +1,37 @@
 """
 Views para o Sistema de Gerenciamento de Estágios Supervisionados
 """
-from rest_framework import viewsets, status, permissions, filters
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
-from django.db.models import Q, Count
-from django.utils import timezone
-from django.http import HttpResponse, Http404
-from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
 import mimetypes
 import os
 
-from .models import (
-    Estagiario, Convenio, Estagio, Documento, 
-    Notificacao, EstatisticasSistema
-)
-from .serializers import (
-    EstagiarioSerializer, ConvenioSerializer, EstagioSerializer,
-    DocumentoSerializer, NotificacaoSerializer, NotificacaoCreateSerializer,
-    EstatisticasSistemaSerializer, RelatorioEstagiarioSerializer,
-    RelatorioEstagioSerializer
-)
-from .permissions import (
-    IsAdminOrReadOnly, IsEstagiarioOwnerOrAdmin, CanManageDocuments,
-    CanManageNotifications, CanAccessStatistics, CanGenerateReports
-)
+from django.db.models import Count, Q
+from django.db.models.functions import TruncMonth
+from django.http import Http404, HttpResponse
+from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
+from django.utils import timezone
+from weasyprint import HTML
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, permissions, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import (Convenio, Documento, Estagiario, Estagio,
+                     EstatisticasSistema, Notificacao, Notification)
+from .permissions import (CanAccessStatistics, CanGenerateReports,
+                          CanManageDocuments, CanManageNotifications,
+                          IsAdminOrReadOnly, IsAluno, IsCoordenador,
+                          IsEstagiarioOwnerOrAdmin, IsSupervisor)
+from .serializers import (ConvenioSerializer, DocumentoSerializer,
+                          EstagiarioSerializer, EstagioSerializer,
+                          EstatisticasSistemaSerializer,
+                          NotificacaoCreateSerializer, NotificacaoSerializer,
+                          RelatorioEstagiarioSerializer,
+                          RelatorioEstagioSerializer, UserSerializer,
+                          NotificationSerializer)
 
 
 class EstagiarioViewSet(viewsets.ModelViewSet):
@@ -35,7 +39,12 @@ class EstagiarioViewSet(viewsets.ModelViewSet):
     
     queryset = Estagiario.objects.all()
     serializer_class = EstagiarioSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsCoordenador()]
+        return [IsCoordenador() | IsSupervisor() | IsAluno()]
+    
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'curso']
     search_fields = ['nome', 'email', 'cpf', 'curso']
@@ -262,6 +271,16 @@ class EstagioViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(estagio)
         return Response(serializer.data)
+    
+    @action(detail=True, methods=['get'])
+    def download_term(self, request, pk=None):
+        """Gera o termo de compromisso em PDF"""
+        estagio = self.get_object()
+        html_string = render_to_string('termo_compromisso.html', {'estagio': estagio})
+        pdf_file = HTML(string=html_string).write_pdf()
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename=termo_{estagio.id}.pdf'
+        return response
 
 
 class DocumentoViewSet(viewsets.ModelViewSet):
@@ -538,4 +557,45 @@ class RelatoriosView(APIView):
             })
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+
+
+class NotificationViewSet(viewsets.ModelViewSet):
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user)
+
+class MonthlyTrendsView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        data = (
+            Estagiario.objects
+            .annotate(month=TruncMonth('data_cadastro'))
+            .values('month')
+            .annotate(count=Count('id'))
+            .order_by('month')
+        )
+        return Response(list(data))
+
+class CourseDistributionView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        data = (
+            Estagiario.objects
+            .values('curso')
+            .annotate(count=Count('id'))
+            .order_by('-count')
+        )
+        return Response(list(data))
 

@@ -1,16 +1,29 @@
 """
 Modelos para o Sistema de Gerenciamento de Estágios Supervisionados
 """
-from django.db import models
-from django.contrib.auth.models import User
-from django.core.validators import RegexValidator
-from django.utils import timezone
 import os
+
+from django.conf import settings
+from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
+from django.db import models
+from django.utils import timezone
 
 
 def upload_documento_path(instance, filename):
     """Função para definir o caminho de upload dos documentos"""
     return f'documentos/{instance.estagio.estagiario.nome}/{filename}'
+
+
+class User(AbstractUser):
+    """Modelo para usuários do sistema (inclui estagiários, supervisores e coordenadores)"""
+    
+    ROLE_CHOICES = (
+        ('COORDENADOR', 'Coordenador'),
+        ('SUPERVISOR', 'Supervisor'),
+        ('ALUNO', 'Aluno'),
+    )
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='ALUNO')
 
 
 class Estagiario(models.Model):
@@ -227,7 +240,7 @@ class Documento(models.Model):
     # Campos de controle
     data_upload = models.DateTimeField(auto_now_add=True, verbose_name='Data de Upload')
     usuario_upload = models.ForeignKey(
-        User, 
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -287,6 +300,9 @@ class Notificacao(models.Model):
         verbose_name = 'Notificação'
         verbose_name_plural = 'Notificações'
         ordering = ['-data_envio']
+        indexes = [
+            models.Index(fields=['estagiario', 'lida']),
+        ]
         
     def __str__(self):
         return f"{self.titulo} - {self.estagiario.nome}"
@@ -335,4 +351,18 @@ class EstatisticasSistema(models.Model):
         
         stats.save()
         return stats
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    message = models.TextField()
+    due_date = models.DateTimeField(null=True, blank=True)
+    read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username}: {self.message[:40]}"
 

@@ -2,6 +2,7 @@
 Permissões personalizadas para o Sistema de Estágios
 """
 from rest_framework import permissions
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
@@ -20,19 +21,16 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         return obj.usuario_upload == request.user
 
 
-class IsAdminOrReadOnly(permissions.BasePermission):
+class IsAdminOrReadOnly(BasePermission):
     """
     Permissão personalizada que permite apenas aos administradores
     criar, editar ou deletar objetos. Usuários comuns podem apenas ler.
     """
     
     def has_permission(self, request, view):
-        # Permissões de leitura são permitidas para usuários autenticados
-        if request.method in permissions.SAFE_METHODS:
-            return request.user and request.user.is_authenticated
-        
-        # Permissões de escrita apenas para administradores
-        return request.user and request.user.is_staff
+        if request.method in SAFE_METHODS:
+            return True
+        return request.user and request.user.is_authenticated and request.user.is_staff
 
 
 class IsEstagiarioOwnerOrAdmin(permissions.BasePermission):
@@ -163,4 +161,38 @@ class CanGenerateReports(permissions.BasePermission):
             request.user.is_authenticated and 
             request.user.is_staff
         )
+
+
+class IsCoordenador(permissions.BasePermission):
+    """
+    Permissão que permite apenas aos usuários com papel de coordenador
+    acessar a view.
+    """
+    
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == 'COORDENADOR'
+
+
+class IsSupervisor(permissions.BasePermission):
+    """
+    Permissão que permite apenas aos usuários com papel de supervisor
+    acessar a view.
+    """
+    
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == 'SUPERVISOR'
+
+
+class IsAluno(permissions.BasePermission):
+    """
+    Permissão que permite apenas aos usuários com papel de aluno
+    acessar a view.
+    """
+    
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == 'ALUNO'
+
+
+# Exemplo de uso em uma ViewSet:
+# permission_classes = [IsCoordenador|IsSupervisor]
 

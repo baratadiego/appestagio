@@ -1,0 +1,34 @@
+{% extends "admin/change_list.html" %}
+{% block content %}
+<h2>Estatísticas do Sistema</h2>
+<canvas id="monthlyTrends"></canvas>
+<canvas id="courseDistribution"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+fetch('/api/v1/statistics/monthly-trends/')
+  .then(res => res.json())
+  .then(data => {
+    const ctx = document.getElementById('monthlyTrends').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.map(d => d.month),
+        datasets: [{ label: 'Estagiários por mês', data: data.map(d => d.count) }]
+      }
+    });
+  });
+
+fetch('/api/v1/statistics/course-distribution/')
+  .then(res => res.json())
+  .then(data => {
+    const ctx = document.getElementById('courseDistribution').getContext('2d');
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: data.map(d => d.curso),
+        datasets: [{ data: data.map(d => d.count) }]
+      }
+    });
+  });
+</script>
+{% endblock %}

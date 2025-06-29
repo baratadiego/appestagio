@@ -1,0 +1,27 @@
+body {
+  background: #fff;
+  color: #222;
+  transition: background 0.3s, color 0.3s;
+}
+
+button {
+  background: #f5f5f5;
+  color: #222;
+  border: 1px solid #ccc;
+  padding: 8px 16px;
+  margin-right: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #181818;
+    color: #eee;
+  }
+  button {
+    background: #222;
+    color: #fff;
+    border: 1px solid #444;
+  }
+}

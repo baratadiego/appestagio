@@ -492,8 +492,8 @@ Relaciona estagiários com convênios, controlando o período de estágio.
 
 ```python
 class Estagio(models.Model):
-    estagiario = models.ForeignKey(Estagiario, on_delete=models.CASCADE)
-    convenio = models.ForeignKey(Convenio, on_delete=models.CASCADE)
+    estagiario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    convenio = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     supervisor = models.CharField(max_length=200)
     supervisor_email = models.EmailField(blank=True, null=True)
     carga_horaria = models.PositiveIntegerField()  # horas semanais
@@ -523,7 +523,7 @@ Armazena arquivos relacionados aos estágios.
 
 ```python
 class Documento(models.Model):
-    estagio = models.ForeignKey(Estagio, on_delete=models.CASCADE)
+    estagio = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     tipo_documento = models.CharField(choices=[
         ('TERMO_COMPROMISSO', 'Termo de Compromisso'),
         ('PLANO_ESTAGIO', 'Plano de Estágio'),
@@ -534,7 +534,7 @@ class Documento(models.Model):
     arquivo = models.FileField(upload_to='documentos/')
     descricao = models.CharField(max_length=200, blank=True)
     data_upload = models.DateTimeField(auto_now_add=True)
-    usuario_upload = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    usuario_upload = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 ```
 
 **Validações:**
@@ -548,7 +548,7 @@ Sistema de mensagens e alertas para estagiários.
 
 ```python
 class Notificacao(models.Model):
-    estagiario = models.ForeignKey(Estagiario, on_delete=models.CASCADE)
+    estagiario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     titulo = models.CharField(max_length=200)
     mensagem = models.TextField()
     tipo = models.CharField(choices=[
@@ -1073,6 +1073,26 @@ Para dúvidas, problemas ou sugestões:
 **Desenvolvido com ❤️ para facilitar o gerenciamento de estágios supervisionados.**
 
 
+
+### Erro de Configuração PostgreSQL (`pg_stat_statements.track`)
+
+Se você encontrar um erro relacionado a `pg_stat_statements.track` ao iniciar o Docker Compose, isso significa que uma configuração inválida foi aplicada ao PostgreSQL. Para corrigir, siga estes passos:
+
+1. **Edite o arquivo `docker/postgres/init.sql`**:
+   - Abra o arquivo e certifique-se de que a linha `ALTER SYSTEM SET pg_stat_statements.track = 'all';` esteja **comentada ou removida**.
+   - Apenas a criação da extensão deve permanecer:
+     ```sql
+     CREATE EXTENSION IF NOT EXISTS "pg_stat_statements";
+     ```
+
+2. **Re-inicialize o Docker Compose com volumes limpos**:
+   ```bash
+   docker-compose down --volumes
+   docker-compose up --build
+   ```
+   Este comando irá remover os volumes de dados existentes (incluindo a configuração inválida do PostgreSQL) e reconstruir os serviços, aplicando a configuração corrigida.
+
+**Explicação**: O parâmetro `pg_stat_statements.track` não pode ser definido via `ALTER SYSTEM` em algumas versões do PostgreSQL ou quando a extensão não está completamente carregada. A remoção dessa linha do `init.sql` e a re-inicialização limpa garantem que o banco de dados seja configurado corretamente desde o início.
 
 ### Erro de Configuração PostgreSQL (`pg_stat_statements.track`)
 

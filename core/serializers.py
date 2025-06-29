@@ -1,14 +1,14 @@
 """
 Serializers para o Sistema de Gerenciamento de Estágios Supervisionados
 """
-from rest_framework import serializers
+import re
+
 from django.contrib.auth.models import User
 from django.utils import timezone
-from .models import (
-    Estagiario, Convenio, Estagio, Documento, 
-    Notificacao, EstatisticasSistema
-)
-import re
+from rest_framework import serializers
+
+from .models import (Convenio, Documento, Estagiario, Estagio,
+                     EstatisticasSistema, Notificacao, Notification)
 
 
 class EstagiarioSerializer(serializers.ModelSerializer):
@@ -385,4 +385,12 @@ class RelatorioEstagioSerializer(serializers.Serializer):
                 'Data de início deve ser anterior à data de fim.'
             )
         return data
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    """Serializer para o modelo Notification"""
+    
+    class Meta:
+        model = Notification
+        fields = ['id', 'message', 'due_date', 'read', 'created_at']
 
