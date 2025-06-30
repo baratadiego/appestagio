@@ -7,7 +7,7 @@ export default function DashboardRouter() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    fetch('/api/me/', {
+    fetch('/api/v1/me/', {
       headers: { Authorization: 'Bearer ' + localStorage.getItem('access') }
     })
       .then(res => res.json())

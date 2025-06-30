@@ -21,3 +21,15 @@ export default function CoordenadorDashboard({ user }) {
     </div>
   );
 }
+
+async function fetchData() {
+  const response = await fetch('/api/v1/me/');
+  const data = await response.json();
+  console.log(data);
+}
+
+async function fetchNotifications() {
+  const response = await fetch('/api/v1/notifications/');
+  const notifications = await response.json();
+  console.log(notifications);
+}

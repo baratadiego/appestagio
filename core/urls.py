@@ -38,7 +38,7 @@ urlpatterns = [
     path('me/', MeView.as_view(), name='me'),
 
     # Endpoint para verificação de token
-    path('api/auth/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    # path('api/auth/verify/', TokenVerifyView.as_view(), name='token_verify'),
 
     # Novos endpoints para estatísticas
     path('statistics/monthly-trends/', MonthlyTrendsView.as_view(), name='monthly-trends'),

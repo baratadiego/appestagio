@@ -55,3 +55,10 @@ class PermissionTestCase(APITestCase):
     def test_admin_or_read_only(self):
         # Test logic for IsAdminOrReadOnly
         pass
+
+
+from django.test import TestCase
+
+
+class EstagiarioTestCase(TestCase):
+    pass

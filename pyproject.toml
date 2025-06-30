@@ -8,4 +8,4 @@ line_length = 88
 
 [tool.flake8]
 max-line-length = 88
-exclude = .git,__pycache__,venv,env,build,dist,migrations
+exclude = ".git,__pycache__,venv,env,build,dist,migrations"

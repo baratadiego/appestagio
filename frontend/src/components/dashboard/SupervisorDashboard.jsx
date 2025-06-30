@@ -11,3 +11,15 @@ export default function SupervisorDashboard({ user }) {
     </div>
   );
 }
+
+async function fetchData() {
+  const response = await fetch('/api/v1/me/');
+  const data = await response.json();
+  return data;
+}
+
+async function fetchNotifications() {
+  const response = await fetch('/api/v1/notifications/');
+  const notifications = await response.json();
+  return notifications;
+}

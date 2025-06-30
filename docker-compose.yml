@@ -54,13 +54,12 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-    command: >
-      sh -c "
-        python manage.py migrate --noinput &&
-        python manage.py createsu &&
-        python manage.py collectstatic --noinput &&
-        gunicorn estagios.wsgi:application --bind 0.0.0.0:8000
-      "
+    command: [
+      "gunicorn",
+      "estagios.wsgi:application",
+      "--bind",
+      "0.0.0.0:8000"
+    ]
 
   # pgAdmin para administração do banco
   pgadmin:
@@ -130,6 +129,19 @@ services:
       - ./:/app
     depends_on:
       - db
+    networks:
+      - estagios_network
+
+  # Celery para tarefas assíncronas
+  celery:
+    build: .
+    command: celery -A estagios worker -l info
+    depends_on:
+      - db
+      - redis
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     networks:
       - estagios_network
 

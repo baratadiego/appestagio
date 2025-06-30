@@ -11,3 +11,15 @@ export default function DownloadTermButton({ estagioId }) {
     </button>
   );
 }
+
+const fetchData = async () => {
+  const response = await fetch('/api/v1/me/');
+  const data = await response.json();
+  console.log(data);
+};
+
+const fetchNotifications = async () => {
+  const response = await fetch('/api/v1/notifications/');
+  const notifications = await response.json();
+  console.log(notifications);
+};

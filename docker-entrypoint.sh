@@ -3,21 +3,13 @@ set -e
 : "${POSTGRES_HOST:=db}"
 : "${POSTGRES_PORT:=5432}"
 : "${POSTGRES_USER:=postgres}"
-# Espera o banco de dados ficar pronto
-until pg_isready -h "$POSTGRES_HOST" -U "$POSTGRES_USER"; do
-  echo "Aguardando o banco de dados..."
-  sleep 2
-done
-python manage.py migrate --noinput
-python manage.py collectstatic --noinput
-exec "$@"
 
 # Função para aguardar o banco de dados
 wait_for_db() {
     echo "Aguardando banco de dados..."
-    while ! pg_isready -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER; do
-        echo "Banco de dados não está pronto - aguardando..."
-        sleep 2
+    until pg_isready -h $POSTGRES_HOST -U $POSTGRES_USER; do
+      echo "Waiting for postgres..."
+      sleep 2
     done
     echo "Banco de dados está pronto!"
 }

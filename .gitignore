@@ -1,1 +1,8 @@
-node_modules
+.venv/
+*.pyc
+__pycache__/
+db.sqlite3
+logs/
+staticfiles/
+media/
+node_modules/

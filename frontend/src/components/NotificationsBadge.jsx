@@ -4,7 +4,7 @@ export default function NotificationsBadge() {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    fetch('/api/notifications/?read=false', {
+    fetch('/api/v1/notifications/?read=false', {
       headers: { Authorization: 'Bearer ' + localStorage.getItem('access') }
     })
       .then(res => res.json())

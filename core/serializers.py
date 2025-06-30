@@ -3,12 +3,14 @@ Serializers para o Sistema de Gerenciamento de Estágios Supervisionados
 """
 import re
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import serializers
 
 from .models import (Convenio, Documento, Estagiario, Estagio,
                      EstatisticasSistema, Notificacao, Notification)
+
+User = get_user_model()
 
 
 class EstagiarioSerializer(serializers.ModelSerializer):
